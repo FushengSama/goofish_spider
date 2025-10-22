@@ -1,6 +1,6 @@
 spiderConfig:
   cookie: "_m_h5_tk_enc=f20ed6830003aa55f6ce11b054cf26ce;xlly_s=1;sgcookie=E100cwxn%2F7tE60HIunaWLBJkANdsKr5FHIu%2BYlygxP1gK4jnlF98nYgkv4n5Ar4yR4C7Qz2BHg4Prp0uiigI4E3R75IDwKUQlunAAq9ruWZi6uc%3D;t=22dcfb6bd1e503d5cf6781647e9563b0;_m_h5_tk=a49fdc6b023bca788cecf4d5fa7f2f06_1761130726183;cna=4gwlIJghjAsBASQOA5BnamnH;tracknick=tb454737635"      #cookie值,使用cookieEditor之类的插件在闲鱼首页获取
-  goods_name: "电动车"  #商品名称
+  goods_name: "电动车111"  #商品名称
   is_save_to_db: true
   is_save_to_excel: true
   is_need_size: false

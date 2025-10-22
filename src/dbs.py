@@ -8,16 +8,16 @@ def getConfigFromYaml(_path:str=""):
     with open(path,'r',encoding="utf-8") as configFile:
         s=yaml.safe_load(configFile)
         print(type(s))
-        return s
+        return s["-db_config"]
 k=getConfigFromYaml("./dbconfig.yaml")
 
 print(k)
 
 user=k["user"]
-password=["passwd"]
-host=["host"]
-port=["port"]
-database=["database"]
+password=k["passwd"]
+host=k["host"]
+port=k["port"]
+database=k["database"]
 
 def init_db()->sq.Engine:
     engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}',

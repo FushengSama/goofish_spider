@@ -3,4 +3,4 @@
   passwd: "123456"
   host: "localhost"
   port: 3306
-  databaseL: "spiderTest"
+  database: "spiderTest"
