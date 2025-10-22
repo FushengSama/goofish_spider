@@ -195,4 +195,4 @@ while type:
         # 保存 Excel 文件
         print(a)
         print(e)
-        wb.save(f'{ss}.xlsx')
+        wb.save(f'../result/{ss}.xlsx')

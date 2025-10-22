@@ -11,7 +11,7 @@ from sqlalchemy import create_engine
 import os
 import dbs
 import ultils.get_goofish_cookies as get_cookies
-
+import yaml
 def get_token(cookie:str)->str:
     
     m_h5_tk_start = cookie.find("_m_h5_tk=") + len("_m_h5_tk=")
@@ -30,6 +30,8 @@ class spiderConfig:
         self.isRange=False
         self.min=None
         self.max=None
+        
+        
     def addsize(self,size:str):
         self.size=size.split("|")
     def setRange(self,isRange:bool,min:int=None,max:int=None):
@@ -38,8 +40,28 @@ class spiderConfig:
         self.max=max if max != "" else None
 
 
+class spiderTaskConfig:
+    def __init__(self,cookie:str,goodsName:str,page:int=10,is_save2xls:bool=True,is_save2db:bool=None,sleeptime:float=1.25):
+        self.cookie=cookie
+        self.goodsName=goodsName
+        self.size=None
+        self.isRange=False
+        self.min=None
+        self.max=None
+        self.is_save2xls=is_save2xls
+        self.is_save2db=is_save2db
+        self.page=page
+        self.sleeptime=sleeptime
+        
+        
+    def addsize(self,size:str):
+        self.size=size.split("|")
+    def setRange(self,isRange:bool,min:int=None,max:int=None):
+        self.isRange=isRange
+        self.min=min if min != "" else None
+        self.max=max if max != "" else None
 
-def getGoods(pages:int,cookie:str,goodsName:str,size:str=None,price_range:tuple=None,is_save:bool=False):
+def getGoods(pages:int,cookie:str,goodsName:str,size:str=None,price_range:tuple=None,is_save_to_xls:bool=False):
     token=get_token(cookie)
     prjPath=os.getcwd()
 
@@ -90,7 +112,7 @@ def getGoods(pages:int,cookie:str,goodsName:str,size:str=None,price_range:tuple=
 
 
 
-    if is_save:
+    if is_save_to_xls:
     # 创建 Excel 工作簿
         wb = Workbook()
     # 获取活动工作表
@@ -179,7 +201,7 @@ def getGoods(pages:int,cookie:str,goodsName:str,size:str=None,price_range:tuple=
                           "地区:", diqu)
                     #ws.append([user_name, jianjei, lianjei, jiage, diqu])
                     ws.append(k:=goods(user_name,jianjei,diqu,category=config.goodsName,link=lianjei,price=jiage))
-                    if is_save:
+                    if is_save_to_xls:
                         
                         wb1.append([k.user_name,k.instruction,k.link,k.price,k.location])
                 else:
@@ -187,14 +209,14 @@ def getGoods(pages:int,cookie:str,goodsName:str,size:str=None,price_range:tuple=
                           "地区:", diqu, "\n", "尺码:", chima)
                     #ws.append([user_name, jianjei, lianjei, jiage, diqu,chima])
                     ws.append(k:=goods(user_name,jianjei,diqu,category=config.goodsName,link=lianjei,price=jiage,size=chima))
-                    if is_save:
+                    if is_save_to_xls:
                         wb1.append([k.user_name,k.instruction,k.link,k.price,k.location,k.size])
                 print("-" * 60)
 
                 # 将数据写入 Excel 工作表
 
             time.sleep(1.61)
-        if is_save:
+        if is_save_to_xls:
             wb.save(prjPath+'/result'+f"/{ss}.xlsx")
         #wb.save(f'{ss}.xlsx')
         return ws
@@ -237,13 +259,61 @@ import argparse
 
 
 
+def start_with_config(config:spiderTaskConfig)->None:
+    _range=None
+    if(config.isRange):
+        _range=(config.min,config.max)
+    lists=getGoods(config.page,
+                   config.cookie,
+                   config.goodsName,
+                   size=config.size,
+                   price_range=_range,
+                   is_save_to_xls=config.is_save2xls)
+    if(config.is_save2db):
+        data2db(lists)
+
+
+
+
+
+
+def getConfigFromYaml(path:str)->spiderTaskConfig:
+    _path=os.path.abspath(path)
+    s={}
+    with open(_path,'r',encoding="utf-8") as configFile:
+        s1=yaml.safe_load(configFile)
+        print(s)
+        s=s1["spiderConfig"]
+        
+
+
+
+        _config=spiderTaskConfig(
+            cookie=s["cookie"],
+            goodsName=s["goods_name"],
+            page=s["pages"],
+            is_save2db=s["is_save_to_db"],
+            is_save2xls=s["is_save_to_excel"]
+            )
+        if(s["is_need_size"]):
+            _config.addsize(s["size"])
+        if(s["is_need_price_range"]):
+            _config.setRange(s["min_price"],s["max_price"])
+        if("sleeptime" in s):
+            _config.sleeptime=s["sleeptime"]
+        return _config
 
 
 if __name__=="__main__":
+   config=getConfigFromYaml("./config.yaml")
+   config.sleeptime=1.3
+   start_with_config(config)
+"""
     co=r"_m_h5_tk_enc=c9b522a1794fcbc5191764e485359258;sdkSilent=1754801600652;xlly_s=1;tfstk=gJbsQ298OAD_GKSJfEPEP6_CQf8fcWzrhjOAZs3ZMFLtHxCJLOJw7S4XHOvF7d5wWrOAU96Xm5v2HK6VMGPUzz5GsEYvl8zzzA6ivY_6Hx8vSeENhU6_zz5G6fRTa6UPumRPlIJvkhKv92pHaqHAHhLpJpADMAdxWW1pKpd9MILxp6dMam3OHEFC9pAvkCBvDW1pKILvHjZtNIZ6I1N5RtIqk-9A6pgxkwUDfL1t0q3ARCt1k1pC_17B1h9JxGTd6NBFMN7Mxln6o6S5hiBLRV6f6gBvQwe-lKSlS6QebbgW7OjpVNWauR5CldtRWHGoyF1HMtKfx8gy1FSBVNsgivCOUdsJSsl7Q6t5A3Apvji97g5Po3QT5YveqI6WNOM14x0yF9fEcXtolB9zOWimmmoGfNJnwbGDXBA6YWNIBix9tB9zOWimmhdH1pPQOAIc.;havana_lgc2_77=eyJoaWQiOjIyMDU4NjU1MTc1NTIsInNnIjoiYzkyNDllNjQwZjQ1NDYxODk0MjAwN2RkMzJjZWZmMmQiLCJzaXRlIjo3NywidG9rZW4iOiIxbHJQT0poNC1FaXVJOXl4dENKbjdRQSJ9;sgcookie=E100Q08HRlUV7FeKQOO9JqeWQdvOZeNFpVbawVd1LNNRCLj80otL6l8xTmofQbqcb%2BHWFPLBMokKuAgKExzHNriTjYLV8owUCGVvmDha6xifJ8WmM8euq%2B8ayey%2FRvD280nk;_tb_token_=e073537ae93e3;havana_lgc_exp=1757227924979;t=630549d4a3155233f811f79174530aa0;_hvn_lgc_=77;_m_h5_tk=cb86332b75474b5d5ca0e45e5a844d92_1754724918677;_samesite_flag_=true;cna=dLr7H+iY8R8CAbf3CTLIDAhh;cookie2=26a0eca1202ced5a2df4401f1c3a1182;csg=a97b503d;isg=BPLyLl1xziUXUv1FIEMKssQ8QzjUg_YdjZ5pqLzLr6WQT5NJpBAAL7fsO-tzP261;tracknick=tb454737635;unb=2205865517552"
     #co=get_cookies.get_cookies("https://www.goofish.com/")
     print(co)
-    a=getGoods(30,co,"RTX5070",price_range=(4000,5000),is_save=False)
+    a=getGoods(30,co,"RTX5070",price_range=(4000,5000),is_save_to_xls=True)
     #print(a)
     #data2db(a)
     k="11"  
+"""

@@ -1,11 +1,23 @@
 from sqlalchemy.schema import Table
 from sqlalchemy import create_engine
 import sqlalchemy as sq
-user='root'
-password='123456'
-host='localhost'
-port=3306
-database='spiderTest'
+import yaml
+import os
+def getConfigFromYaml(_path:str=""):
+    path=os.path.abspath(_path)
+    with open(path,'r',encoding="utf-8") as configFile:
+        s=yaml.safe_load(configFile)
+        print(type(s))
+        return s
+k=getConfigFromYaml("./dbconfig.yaml")
+
+print(k)
+
+user=k["user"]
+password=["passwd"]
+host=["host"]
+port=["port"]
+database=["database"]
 
 def init_db()->sq.Engine:
     engine = create_engine(f'mysql+pymysql://{user}:{password}@{host}:{port}/{database}',
