@@ -22,7 +22,7 @@ pip install -r requirements.txt
 
 ### 3. 运行爬虫
 ```bash
-python src/spider2Database.py
+python src/main.py
 ```
 
 ## 使用示例
